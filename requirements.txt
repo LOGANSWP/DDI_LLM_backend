@@ -1,0 +1,19 @@
+# llm and orchestration
+langchain==0.3.17
+langchain-google-genai==2.0.8
+langchain-community==0.3.16
+
+# neo4j
+neo4j==5.27.0
+
+# api and utilities
+python-dotenv==1.0.1
+pydantic==2.10.5
+
+# testing
+pytest==8.3.4
+pytest-cov==6.0.0
+pytest-mock==3.14.0
+
+# logging
+structlog==24.4.0
