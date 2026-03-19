@@ -1,6 +1,6 @@
 import os
 import sys
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 import pytest
 
 # 1. Inject dummy environment variables BEFORE any LangChain/Neo4j imports happen.
@@ -13,22 +13,26 @@ os.environ["NEO4J_PASSWORD"] = "testpassword"
 mock_chain = MagicMock()
 mock_graph = MagicMock()
 
-# 3. Intercept the 'src.chain' import
-mock_src_chain = MagicMock()
-mock_src_chain.build_qa_chain.return_value = (mock_chain, mock_graph)
-sys.modules['src.chain'] = mock_src_chain
-
-# 4. Use a pytest fixture to safely load the app and test client.
-# Auto-formatters will NOT move imports that are inside a function.
+# 3. Use a pytest fixture to safely load the app and test client.
 
 
 @pytest.fixture
 def client():
-    from src.api import app
-    from fastapi.testclient import TestClient
-    return TestClient(app)
+    # Intercept the 'src.chain' import
+    mock_src_chain = MagicMock()
+    mock_src_chain.build_qa_chain.return_value = (mock_chain, mock_graph)
 
-# Notice how we pass `client` as an argument to each test function now
+    # patch.dict safely applies the mock ONLY for the duration of the API tests
+    with patch.dict('sys.modules', {'src.chain': mock_src_chain}):
+        # Clear src.api from the cache if it exists so it re-imports using our fake chain
+        sys.modules.pop('src.api', None)
+
+        from src.api import app
+        from fastapi.testclient import TestClient
+
+        # 'yield' hands the client to the test.
+        # When the test finishes, the 'with' block ends and sys.modules returns to normal!
+        yield TestClient(app)
 
 
 def test_query_endpoint_success(client):
