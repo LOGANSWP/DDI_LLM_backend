@@ -41,4 +41,8 @@ async def execute_dynamic_query(request: QueryRequest):
             "data": raw_graph_data
         }
     except Exception as e:
-        return {"status": "error", "message": "Failed to parse the medical query: " + str(e), "data": []}
+        raise HTTPException(
+            status_code=500,
+            detail={"status": "error",
+                    "message": "Failed to parse the medical query: " + str(e), "data": []}
+        )
