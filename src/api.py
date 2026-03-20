@@ -2,10 +2,20 @@
 FastAPI bridge connecting the frontend to the dynamic graph backend.
 """
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from src.chain import build_qa_chain
 
-app = FastAPI(title="Universal Medical Graph API")
+app = FastAPI(title="Drug to Drug Interaction LLM API")
+
+# Using ["*"] allows requests from ANY origin.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allows all origins
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all HTTP methods (GET, POST, OPTIONS, etc.)
+    allow_headers=["*"],  # Allows all headers
+)
 
 # Initialize chain and graph globally
 chain, graph = build_qa_chain()
