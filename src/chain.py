@@ -20,6 +20,7 @@ def build_qa_chain():
         verbose=True,  # Prints the dynamic Cypher to your terminal for debugging
         cypher_prompt=prompt,
         return_direct=True,  # Critical: Returns raw JSON instead of conversational summary
-        validate_cypher=True
+        validate_cypher=True,
+        allow_dangerous_requests=True  # Add this required security flag!
     )
     return chain, graph
