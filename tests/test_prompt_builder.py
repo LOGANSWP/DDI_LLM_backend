@@ -21,7 +21,7 @@ def test_prompt_input_variables():
 def test_prompt_contains_critical_instructions():
     """Check if the critical architectural rules are present in the template."""
     # We access the class attribute directly to verify the text
-    template_text = PromptBuilder.universal_decoupled_template
+    template_text = PromptBuilder._build_template()
 
     # Verify the AI is being told to map intents
     assert "INTENT-TO-SCHEMA MAPPING" in template_text
