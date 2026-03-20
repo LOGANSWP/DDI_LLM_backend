@@ -1,0 +1,27 @@
+# --- API & Web Server ---
+fastapi>=0.110.0
+uvicorn[standard]>=0.29.0
+pydantic>=2.7.0
+
+# --- LLM Orchestration ---
+langchain>=0.2.0
+langchain-core>=0.2.0
+
+# --- Partner Packages (Specific Integrations) ---
+langchain-openai>=0.1.0
+langchain-neo4j>=0.1.0
+langchain-google-genai==2.0.8
+
+# --- Database Driver ---
+neo4j>=5.20.0
+
+# --- Environment Management ---
+python-dotenv>=1.0.1
+
+# testing
+pytest==8.3.4
+pytest-cov==6.0.0
+pytest-mock==3.14.0
+
+# logging
+structlog==24.4.0
