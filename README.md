@@ -65,6 +65,7 @@ OPENAI_API_KEY=sk-your-real-openai-api-key
 NEO4J_URI=neo4j+s://your-database-id.databases.neo4j.io  # Or bolt://localhost:7687 for local
 NEO4J_USER=neo4j
 NEO4J_PASSWORD=your-real-database-password
+NEO4J_DATABASE=neo4j
 ```
 
 ### Step 5: Seed the Database (Crucial)
