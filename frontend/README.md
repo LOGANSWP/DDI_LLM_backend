@@ -1,73 +1,84 @@
-# React + TypeScript + Vite
+# Frontend - Drug Interaction Explorer
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React + TypeScript frontend for visualizing drug-drug interactions.
 
-Currently, two official plugins are available:
+## Tech Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **React 19** with **TypeScript**
+- **Vite** - Fast build tool
+- **Tailwind CSS v4** - Utility-first CSS
+- **React Router** - Client-side routing
+- **TanStack Query** - Server state management
+- **Zustand** - Client state management
+- **Cytoscape.js** - Graph visualization
+- **Axios** - HTTP client
 
-## React Compiler
+## Quick Start
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Prerequisites
+- Node.js 18+ and npm
 
-## Expanding the ESLint configuration
+### Development
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+1. **Install dependencies:**
+```bash
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+2. **Start dev server:**
+```bash
+npm run dev
 ```
+
+Frontend runs at `http://localhost:3000`
+
+3. **Build for production:**
+```bash
+npm run build
+```
+
+4. **Preview production build:**
+```bash
+npm run preview
+```
+
+## Project Structure
+
+```
+frontend/
+├── src/
+│   ├── main.tsx           # entry point
+│   ├── App.tsx            # root component
+│   ├── index.css          # tailwind imports
+│   └── vite-env.d.ts      # vite types
+├── public/                # static assets
+├── index.html             # html template
+├── vite.config.ts         # vite config with proxy
+├── tsconfig.json          # typescript config
+└── package.json           # dependencies
+```
+
+## API Integration
+
+The Vite dev server proxies `/api/*` requests to the backend at `http://localhost:8000`.
+
+**Example:**
+```typescript
+// frontend makes request to /api/query
+// vite proxies to http://localhost:8000/api/query
+```
+
+## Available Scripts
+
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
+- `npm run lint` - Run ESLint
+
+## Next Steps
+
+- [ ] Set up React Router pages
+- [ ] Create API service layer with TanStack Query
+- [ ] Build Cytoscape.js graph component
+- [ ] Implement query interface
+- [ ] Add state management with Zustand
