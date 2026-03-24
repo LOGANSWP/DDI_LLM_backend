@@ -3,11 +3,13 @@ Core graph connection module.
 Requires zero hardcoded configuration, connecting directly to Neo4j to pull the live schema.
 """
 import os
+from pathlib import Path
 from langchain_neo4j import Neo4jGraph
 from dotenv import load_dotenv
 
-# Force reload the .env file
-load_dotenv(override=True)
+# load .env from project root (parent of backend/)
+env_path = Path(__file__).parent.parent.parent / '.env'
+load_dotenv(dotenv_path=env_path, override=True)
 
 
 def get_graph() -> Neo4jGraph:
