@@ -1,6 +1,6 @@
 import os
 import sys
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, patch, ANY
 import pytest
 
 # 1. Inject dummy environment variables BEFORE any LangChain/Neo4j imports happen.
@@ -130,4 +130,54 @@ def test_get_initial_graph_error(client):
     data = response.json()["detail"]
     assert data["status"] == "error"
     assert "Failed to load initial graph: Database connection lost" in data["message"]
+    assert data["data"] == []
+
+
+def test_expand_node_success(client):
+    """Test the expand endpoint successfully returns neighbors for a clicked node."""
+
+    # 1. CLEAR the leftover error state from the previous test!
+    mock_graph.query.side_effect = None
+
+    # 2. Mock the pure Cypher query response
+    mock_graph.query.return_value = [
+        {
+            "NodeType1": ["Drug"],
+            "Target1": "Aspirin",
+            "NodeType2": ["Drug"],
+            "Target2": "Warfarin",
+            "EdgeDetails": {"severity": "High"},
+            "EdgeType": "INTERACTS_WITH"
+        }
+    ]
+
+    # Hit the new POST endpoint with our JSON payload
+    response = client.post("/api/graph/expand", json={"node_name": "Aspirin"})
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "success"
+    assert data["message"] == "Expanded node: Aspirin"
+    assert len(data["data"]) == 1
+
+    # Assert it correctly pulled the mock data
+    assert data["data"][0]["Target2"] == "Warfarin"
+
+    # Verify the backend actually tried to run a Cypher query with parameters
+    mock_graph.query.assert_called_with(
+        ANY,  # Ignores checking the exact Cypher string
+        params={"node_name": "Aspirin"}
+    )
+
+
+def test_expand_node_error(client):
+    """Test the expand endpoint properly handles database errors."""
+    mock_graph.query.side_effect = Exception("Database timeout")
+
+    response = client.post("/api/graph/expand", json={"node_name": "Aspirin"})
+
+    assert response.status_code == 500
+    data = response.json()["detail"]
+    assert data["status"] == "error"
+    assert "Failed to expand node: Database timeout" in data["message"]
     assert data["data"] == []
