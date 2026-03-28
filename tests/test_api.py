@@ -80,3 +80,54 @@ def test_query_endpoint_error_handling(client):
     data = response.json()["detail"]
     assert data["status"] == "error"
     assert "Failed to parse the medical query: OpenAI API timeout" in data["message"]
+
+
+def test_get_initial_graph_success(client):
+    """Test the initial load endpoint returns the top 10 root nodes correctly."""
+    # Mock the pure Cypher query response from the graph driver
+    mock_graph.query.return_value = [
+        {
+            "NodeType1": ["Drug"],
+            "Target1": "Metformin",
+            "NodeType2": None,  # Python's None becomes JSON's null
+            "Target2": None,
+            "EdgeDetails": None,
+            "EdgeType": None
+        }
+    ]
+
+    # Hit the new GET endpoint
+    response = client.get("/api/graph/init")
+
+    # Assert HTTP Status
+    assert response.status_code == 200
+
+    # Assert JSON payload matches our API docs
+    data = response.json()
+    assert data["status"] == "success"
+    assert data["message"] == "Initial graph loaded with 10 root nodes."
+    assert len(data["data"]) == 1
+
+    # Assert the clever "null" trick is working properly
+    assert data["data"][0]["Target1"] == "Metformin"
+    assert data["data"][0]["Target2"] is None
+
+    # Verify the backend actually tried to run a Cypher query
+    mock_graph.query.assert_called_once()
+
+
+def test_get_initial_graph_error(client):
+    """Test the initial load endpoint properly handles database errors."""
+    # Force the graph driver to throw an exception
+    mock_graph.query.side_effect = Exception("Database connection lost")
+
+    response = client.get("/api/graph/init")
+
+    # Assert it returns an HTTP 500 Failsafe
+    assert response.status_code == 500
+
+    # Assert it matches the Global Error Handling structure (inside "detail")
+    data = response.json()["detail"]
+    assert data["status"] == "error"
+    assert "Failed to load initial graph: Database connection lost" in data["message"]
+    assert data["data"] == []
