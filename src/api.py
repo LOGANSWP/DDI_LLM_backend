@@ -25,6 +25,10 @@ class QueryRequest(BaseModel):
     question: str
 
 
+class ExpandRequest(BaseModel):
+    node_name: str
+
+
 @app.post("/api/query")
 async def execute_dynamic_query(request: QueryRequest):
     try:
@@ -58,7 +62,7 @@ async def execute_dynamic_query(request: QueryRequest):
         )
 
 # ==========================================
-# FEATURE 1: Initial Graph Load (Top 10 Drugs)
+# Initial Graph Load (Top 10 Drugs)
 # ==========================================
 
 
@@ -90,6 +94,42 @@ async def get_initial_graph():
             detail={
                 "status": "error",
                 "message": f"Failed to load initial graph: {str(e)}",
+                "data": []
+            }
+        )
+
+# ==========================================
+# Expand Node
+# ==========================================
+
+
+@app.post("/api/graph/expand")
+async def expand_node(request: ExpandRequest):
+    """Fetches all immediate neighbors (and their connecting edges) for a specific node."""
+    try:
+        # Only respond drugs interaction (case-insensitive)
+        cypher_query = """
+        MATCH (n:Drug)-[r]-(m:Drug)
+        WHERE toLower(n.name) = toLower($node_name)
+        RETURN labels(n) AS NodeType1, n.name AS Target1, 
+               labels(m) AS NodeType2, m.name AS Target2, 
+               properties(r) AS EdgeDetails, type(r) AS EdgeType
+        """
+        # Pass the parameters dictionary to safely inject the user's clicked node
+        raw_graph_data = graph.query(
+            cypher_query, params={"node_name": request.node_name})
+
+        return {
+            "status": "success",
+            "message": f"Expanded node: {request.node_name}",
+            "data": raw_graph_data
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "status": "error",
+                "message": f"Failed to expand node: {str(e)}",
                 "data": []
             }
         )
