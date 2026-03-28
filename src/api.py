@@ -56,3 +56,40 @@ async def execute_dynamic_query(request: QueryRequest):
             detail={"status": "error",
                     "message": "Failed to parse the medical query: " + str(e), "data": []}
         )
+
+# ==========================================
+# FEATURE 1: Initial Graph Load (Top 10 Drugs)
+# ==========================================
+
+
+@app.get("/api/graph/init")
+async def get_initial_graph():
+    """Fetches the top 10 most connected drugs to act as root nodes."""
+    try:
+        # Pure Cypher: Find top 10 drugs by degree, return ONLY the nodes.
+        # We use 'null' for the edge/target2 columns to keep the JSON structure identical.
+        cypher_query = """
+        MATCH (d:Drug)
+        WITH d ORDER BY COUNT { (d)--() } DESC LIMIT 10
+        RETURN labels(d) AS NodeType1, d.name AS Target1, 
+               null AS NodeType2, null AS Target2, 
+               null AS EdgeDetails, null AS EdgeType
+        """
+        # Execute the pure cypher query directly against the database
+        raw_graph_data = graph.query(cypher_query)
+
+        return {
+            "status": "success",
+            "message": "Initial graph loaded with 10 root nodes.",
+            "data": raw_graph_data
+        }
+    except Exception as e:
+        # Error Handling
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "status": "error",
+                "message": f"Failed to load initial graph: {str(e)}",
+                "data": []
+            }
+        )
