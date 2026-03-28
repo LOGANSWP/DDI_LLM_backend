@@ -16,6 +16,16 @@ mock_graph = MagicMock()
 # 3. Use a pytest fixture to safely load the app and test client.
 
 
+@pytest.fixture(autouse=True)
+def reset_mocks_between_tests():
+    mock_chain.reset_mock()
+    mock_graph.reset_mock()
+    mock_chain.invoke.side_effect = None
+    mock_graph.query.side_effect = None
+    mock_chain.invoke.return_value = None
+    mock_graph.query.return_value = None
+
+
 @pytest.fixture
 def client():
     # Intercept the 'src.chain' import
@@ -136,10 +146,7 @@ def test_get_initial_graph_error(client):
 def test_expand_node_success(client):
     """Test the expand endpoint successfully returns neighbors for a clicked node."""
 
-    # 1. CLEAR the leftover error state from the previous test!
-    mock_graph.query.side_effect = None
-
-    # 2. Mock the pure Cypher query response
+    # Mock the pure Cypher query response
     mock_graph.query.return_value = [
         {
             "NodeType1": ["Drug"],

@@ -109,12 +109,11 @@ async def expand_node(request: ExpandRequest):
     try:
         # Only respond drugs interaction (case-insensitive)
         cypher_query = """
-        MATCH (n)-[r]-(m:Drug)
+        MATCH (n:Drug)-[r]-(m:Drug)
         WHERE toLower(n.name) = toLower($node_name)
         RETURN labels(n) AS NodeType1, n.name AS Target1, 
                labels(m) AS NodeType2, m.name AS Target2, 
                properties(r) AS EdgeDetails, type(r) AS EdgeType
-        LIMIT 50
         """
         # Pass the parameters dictionary to safely inject the user's clicked node
         raw_graph_data = graph.query(
