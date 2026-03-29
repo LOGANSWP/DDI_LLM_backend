@@ -18,3 +18,27 @@ def get_graph() -> Neo4jGraph:
         password=os.environ.get("NEO4J_PASSWORD", "testpassword"),
         database=os.environ.get("NEO4J_DATABASE", "neo4j")
     )
+
+
+def fetch_initial_graph(graph: Neo4jGraph) -> list:
+    """Executes pure Cypher to get the top 10 root drugs."""
+    query = """
+    MATCH (d:Drug)
+    WITH d ORDER BY COUNT { (d)--(:Drug) } DESC LIMIT 10
+    RETURN labels(d) AS NodeType1, d.name AS Target1, 
+           null AS NodeType2, null AS Target2, 
+           null AS EdgeDetails, null AS EdgeType
+    """
+    return graph.query(query)
+
+
+def fetch_expanded_node(graph: Neo4jGraph, node_name: str) -> list:
+    """Executes pure Cypher to get all neighbors for a specific node."""
+    query = """
+    MATCH (n:Drug)-[r]-(m:Drug)
+    WHERE toLower(n.name) = toLower($node_name)
+    RETURN labels(n) AS NodeType1, n.name AS Target1, 
+           labels(m) AS NodeType2, m.name AS Target2, 
+           properties(r) AS EdgeDetails, type(r) AS EdgeType
+    """
+    return graph.query(query, params={"node_name": node_name})

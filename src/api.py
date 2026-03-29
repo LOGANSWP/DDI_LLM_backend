@@ -5,6 +5,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from src.chain import build_qa_chain
+from src.graph import fetch_expanded_node, fetch_initial_graph
 
 app = FastAPI(title="Drug to Drug Interaction LLM API")
 
@@ -18,7 +19,7 @@ app.add_middleware(
 )
 
 # Initialize chain and graph globally
-chain, graph = build_qa_chain()
+cypher_chain, summary_chain, graph = build_qa_chain()
 
 
 class QueryRequest(BaseModel):
@@ -35,30 +36,43 @@ async def execute_dynamic_query(request: QueryRequest):
         # Pull the absolute latest schema immediately before invoking the chain
         graph.refresh_schema()
 
+        # PASS 1: Get raw JSON
         # Execute query; chain returns raw JSON because return_direct=True
         # The {schema} variable is injected automatically by LangChain
-        response = chain.invoke({"query": request.question})
+        response = cypher_chain.invoke({"query": request.question})
         raw_graph_data = response.get("result", [])
 
         # Failsafe: Query succeeded, but no matching paths exist in the graph
         if not raw_graph_data:
             return {
                 "status": "empty",
-                "message": "No matching data found in the current graph. Please try rephrasing or check clinical guidelines.",
+                "message": "No matching data found.",
+                "summary": "We could not find any records in the database matching your query.",
                 "data": []
             }
+
+        # PASS 2: Get text summary using summary_chain
+        summary_response = summary_chain.invoke({
+            "question": request.question,
+            "data": str(raw_graph_data)
+        })
 
         # Success: Return the dynamic JSON array to React
         return {
             "status": "success",
             "message": "Graph data retrieved successfully.",
+            "summary": summary_response.content,
             "data": raw_graph_data
         }
     except Exception as e:
         raise HTTPException(
             status_code=500,
-            detail={"status": "error",
-                    "message": "Failed to parse the medical query: " + str(e), "data": []}
+            detail={
+                "status": "error",
+                "message": "Failed to parse the medical query.",
+                "summary": str(e),
+                "data": []
+            }
         )
 
 # ==========================================
@@ -70,18 +84,8 @@ async def execute_dynamic_query(request: QueryRequest):
 async def get_initial_graph():
     """Fetches the top 10 most connected drugs to act as root nodes."""
     try:
-        # Pure Cypher: Find top 10 drugs by degree, return ONLY the nodes.
-        # We use 'null' for the edge/target2 columns to keep the JSON structure identical.
-        cypher_query = """
-        MATCH (d:Drug)
-        WITH d ORDER BY COUNT { (d)--() } DESC LIMIT 10
-        RETURN labels(d) AS NodeType1, d.name AS Target1, 
-               null AS NodeType2, null AS Target2, 
-               null AS EdgeDetails, null AS EdgeType
-        """
-        # Execute the pure cypher query directly against the database
-        raw_graph_data = graph.query(cypher_query)
-
+        # Calls the clean helper function from graph.py
+        raw_graph_data = fetch_initial_graph(graph)
         return {
             "status": "success",
             "message": "Initial graph loaded with 10 root nodes.",
@@ -107,17 +111,8 @@ async def get_initial_graph():
 async def expand_node(request: ExpandRequest):
     """Fetches all immediate neighbors (and their connecting edges) for a specific node."""
     try:
-        # Only respond drugs interaction (case-insensitive)
-        cypher_query = """
-        MATCH (n:Drug)-[r]-(m:Drug)
-        WHERE toLower(n.name) = toLower($node_name)
-        RETURN labels(n) AS NodeType1, n.name AS Target1, 
-               labels(m) AS NodeType2, m.name AS Target2, 
-               properties(r) AS EdgeDetails, type(r) AS EdgeType
-        """
-        # Pass the parameters dictionary to safely inject the user's clicked node
-        raw_graph_data = graph.query(
-            cypher_query, params={"node_name": request.node_name})
+        # Calls the clean helper function from graph.py
+        raw_graph_data = fetch_expanded_node(graph, request.node_name)
 
         return {
             "status": "success",

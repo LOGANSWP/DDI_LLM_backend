@@ -4,10 +4,10 @@ from langchain_core.prompts import PromptTemplate
 class PromptBuilder:
     """Builds the universal intent-based master prompt dynamically."""
 
-    # 1. The Core Task
+    # The Core Task
     TASK_DESCRIPTION = "Task: Generate a Cypher statement to query a medical knowledge graph."
 
-    # 2. Individual Instructions (Notice: No hardcoded numbers)
+    # Individual Instructions (Notice: No hardcoded numbers)
     INST_MAPPING = (
         "INTENT-TO-SCHEMA MAPPING (CRITICAL): Read the user's question to identify the core concepts "
         "(e.g., medications, diseases, symptoms). Analyze the provided {schema} to find the exact Node "
@@ -45,8 +45,16 @@ class PromptBuilder:
 
     INST_CASE = "CASE INSENSITIVITY: ALWAYS use the toLower() function on string comparisons."
 
-    # 3. Footer
+    # Footer
     FOOTER = "Schema:\n{schema}\n\nQuestion: {question}\nCypher Query:"
+
+    # --- NEW: Summary Prompt ---
+    SUMMARY_TEMPLATE = (
+        "The user asked: '{question}'.\n"
+        "The database returned this raw data: {data}\n"
+        "Write a brief, professional, 1-to-2 paragraph medical summary explaining this data to the user. "
+        "Do not use markdown lists. If the data is empty, state that no known interactions were found."
+    )
 
     @classmethod
     def _build_template(cls) -> str:
@@ -80,3 +88,8 @@ class PromptBuilder:
             input_variables=["schema", "question"],
             template=cls._build_template()
         )
+
+    @classmethod
+    def get_summary_prompt(cls) -> PromptTemplate:
+        """Returns the prompt template for the Phase 2 text summary."""
+        return PromptTemplate.from_template(cls.SUMMARY_TEMPLATE)
