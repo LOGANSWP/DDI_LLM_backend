@@ -30,10 +30,14 @@ class PromptBuilder:
     )
 
     INST_RETURN = (
-        "RETURN EVERYTHING (CRITICAL): Return the target node AND the entire dictionary of relationship "
-        "properties using the Cypher `properties()` function. Also, return the labels of the nodes so "
-        "the frontend knows what type of entity it is.\n"
-        "   Example: RETURN labels(target_node) AS NodeType, target_node.name AS TargetName, properties(r) AS EdgeDetails"
+        "STRICT RETURN FORMAT (CRITICAL): You MUST return exactly these six columns using these exact aliases, no matter what your MATCH clause looks like. Do not change these aliases:\n"
+        "   1. labels(n) AS NodeType1  (Replace 'n' with your first node variable)\n"
+        "   2. n.name AS Target1\n"
+        "   3. labels(m) AS NodeType2  (Replace 'm' with your second node variable)\n"
+        "   4. m.name AS Target2\n"
+        "   5. properties(r) AS EdgeDetails (Replace 'r' with your relationship variable)\n"
+        "   6. type(r) AS EdgeType\n"
+        "   Example: RETURN labels(d1) AS NodeType1, d1.name AS Target1, labels(d2) AS NodeType2, d2.name AS Target2, properties(r) AS EdgeDetails, type(r) AS EdgeType"
     )
 
     INST_DIRECTION = (
