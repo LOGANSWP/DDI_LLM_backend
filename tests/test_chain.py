@@ -73,4 +73,5 @@ def test_build_qa_chain_configuration(mock_chain_dependencies):
 
     assert kwargs["return_direct"] is True
     assert kwargs["validate_cypher"] is True
+    assert kwargs["top_k"] == 100  # Test the new limit
     assert kwargs["graph"] == mock_chain_dependencies["fake_graph"]

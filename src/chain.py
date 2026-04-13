@@ -22,7 +22,8 @@ def build_qa_chain():
         cypher_prompt=cypher_prompt,
         return_direct=True,  # Critical: Returns raw JSON instead of conversational summary
         validate_cypher=True,
-        allow_dangerous_requests=True  # Add this required security flag!
+        allow_dangerous_requests=True,  # Add this required security flag!
+        top_k=100  # Override LangChain's default limit of 10
     )
 
     # 2. Setup the faster/cheaper GPT-4o-mini for the simple Text Summary
