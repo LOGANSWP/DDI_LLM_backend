@@ -16,17 +16,19 @@ class PromptBuilder:
     )
 
     INST_SYNONYM = (
-        "UNIVERSAL SYNONYM EXPANSION: For ANY medical entity mentioned (drug, disease, pathogen), "
-        "generate an array of synonyms, generic names, and brand names. Use the Cypher IN operator.\n"
-        "   - Example: WHERE toLower(n.name) IN ['diabetes', 'type 2 diabetes', 't2d']"
+        "SYNONYMS & PARTIAL MATCHING: \n"
+        "   - SPECIFIC ENTITIES: For specific drugs or exact diseases, generate synonyms and use the IN operator. "
+        "Example: WHERE toLower(n.name) IN ['advil', 'ibuprofen']\n"
+        "   - BROAD CATEGORIES: If the user asks for a general condition (e.g., 'kidney failure', 'cancer'), use the CONTAINS operator with key terms to catch all variations. "
+        "Example: WHERE toLower(n.name) CONTAINS 'kidney' OR toLower(n.name) CONTAINS 'renal'"
     )
 
     INST_SEARCH_TYPE = (
-        "CATEGORICAL VS. FREE-TEXT SEARCH: Look at the properties available in the {schema}.\n"
-        "   - CATEGORICAL: If asking for a risk or severity level, use the IN operator with synonyms. "
-        "Example: WHERE toLower(r.severity) IN ['major', 'severe', 'critical']\n"
-        "   - FREE-TEXT: If asking for a mechanism or symptom, use the CONTAINS operator. "
-        "Example: WHERE toLower(r.mechanism) CONTAINS 'bleeding'"
+        "CATEGORICAL, FREE-TEXT, & NUMERICAL SEARCH: Look at the properties available in the {schema}.\n"
+        "   - CATEGORICAL: For strings with few options, use IN. Example: WHERE toLower(r.severity) IN ['major', 'severe']\n"
+        "   - FREE-TEXT: For descriptions, use CONTAINS. Example: WHERE toLower(r.mechanism) CONTAINS 'bleeding'\n"
+        "   - NUMERICAL/SORTING: If the user asks for 'most common', 'highest', or 'top', find the relevant numerical property in the schema (e.g., admission_count or avg_severity) and use ORDER BY and LIMIT. "
+        "Example: ORDER BY r.admission_count DESC LIMIT 10"
     )
 
     INST_RETURN = (
