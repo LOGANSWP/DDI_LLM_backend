@@ -20,7 +20,7 @@ class PromptBuilder:
         "   - SPECIFIC ENTITIES: For specific drugs or exact diseases, generate synonyms and use the IN operator. "
         "Example: WHERE toLower(n.name) IN ['advil', 'ibuprofen']\n"
         "   - BROAD CATEGORIES: If the user asks for a general condition (e.g., 'kidney failure', 'cancer'), use the CONTAINS operator with key terms to catch all variations. "
-        "Example: WHERE toLower(n.name) CONTAINS 'kidney' OR toLower(n.name) CONTAINS 'renal'"
+        "Example: WHERE (toLower(n.name) CONTAINS 'kidney' OR toLower(n.name) CONTAINS 'renal')"
     )
 
     INST_SEARCH_TYPE = (
