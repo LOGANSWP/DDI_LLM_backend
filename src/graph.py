@@ -21,11 +21,21 @@ def get_graph() -> Neo4jGraph:
 
 
 def fetch_initial_graph(graph: Neo4jGraph) -> list:
-    """Executes pure Cypher to get the top 10 root drugs."""
+    """Executes pure Cypher to get the top 10 root drugs and top 5 root diagnoses."""
     query = """
+    // Query 1: Get the top 10 most connected Drugs
     MATCH (d:Drug)
-    WITH d ORDER BY COUNT { (d)--(:Drug) } DESC LIMIT 10
+    WITH d ORDER BY COUNT { (d)--() } DESC LIMIT 10
     RETURN labels(d) AS NodeType1, d.name AS Target1, 
+           null AS NodeType2, null AS Target2, 
+           null AS EdgeDetails, null AS EdgeType
+           
+    UNION ALL
+    
+    // Query 2: Get the top 5 most connected Diagnoses
+    MATCH (diag:Diagnosis)
+    WITH diag ORDER BY COUNT { (diag)--() } DESC LIMIT 5
+    RETURN labels(diag) AS NodeType1, diag.long_title AS Target1, 
            null AS NodeType2, null AS Target2, 
            null AS EdgeDetails, null AS EdgeType
     """
