@@ -36,10 +36,11 @@ def fetch_expanded_node(graph: Neo4jGraph, node_name: str) -> list:
     """Executes pure Cypher to get all valid neighbors (Drugs or Diagnoses) for a specific node."""
     query = """
     MATCH (n)-[r]-(m)
-    WHERE toLower(COALESCE(n.name, n.long_title, "")) = toLower($node_name)
+    WHERE toLower(COALESCE(n.name, n.long_title)) = toLower($node_name)
       AND COALESCE(m.name, m.long_title) IS NOT NULL
     RETURN labels(n) AS NodeType1, COALESCE(n.name, n.long_title) AS Target1, 
            labels(m) AS NodeType2, COALESCE(m.name, m.long_title) AS Target2, 
            properties(r) AS EdgeDetails, type(r) AS EdgeType
+    LIMIT 50
     """
     return graph.query(query, params={"node_name": node_name})
