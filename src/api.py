@@ -88,7 +88,7 @@ async def get_initial_graph():
         raw_graph_data = fetch_initial_graph(graph)
         return {
             "status": "success",
-            "message": "Initial graph loaded with 10 root nodes.",
+            "message": "Initial graph loaded with top 10 drug nodes and top 5 diagnosis nodes.",
             "data": raw_graph_data
         }
     except Exception as e:

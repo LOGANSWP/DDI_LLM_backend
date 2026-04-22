@@ -110,13 +110,21 @@ def test_query_endpoint_error_handling(client):
 
 
 def test_get_initial_graph_success(client):
-    """Test the initial load endpoint returns the top 10 root nodes correctly."""
-    # Mock the pure Cypher query response from the graph driver
+    """Test the initial load endpoint returns the top root nodes correctly."""
+    # Mock the pure Cypher query returning both a Drug and a Diagnosis
     mock_graph.query.return_value = [
         {
             "NodeType1": ["Drug"],
             "Target1": "Metformin",
-            "NodeType2": None,  # Python's None becomes JSON's null
+            "NodeType2": None,
+            "Target2": None,
+            "EdgeDetails": None,
+            "EdgeType": None
+        },
+        {
+            "NodeType1": ["Diagnosis"],
+            "Target1": "Type 2 Diabetes",
+            "NodeType2": None,
             "Target2": None,
             "EdgeDetails": None,
             "EdgeType": None
@@ -128,10 +136,13 @@ def test_get_initial_graph_success(client):
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "success"
-    assert data["message"] == "Initial graph loaded with 10 root nodes."
-    assert len(data["data"]) == 1
+
+    # Assert that it successfully processes our mixed list of 2 items
+    assert len(data["data"]) == 2
     assert data["data"][0]["Target1"] == "Metformin"
-    assert data["data"][0]["Target2"] is None
+    assert data["data"][0]["NodeType1"] == ["Drug"]
+    assert data["data"][1]["Target1"] == "Type 2 Diabetes"
+    assert data["data"][1]["NodeType1"] == ["Diagnosis"]
 
     mock_graph.query.assert_called_once()
 

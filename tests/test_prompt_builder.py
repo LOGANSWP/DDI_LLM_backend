@@ -23,7 +23,7 @@ def test_prompt_contains_critical_instructions():
     template_text = PromptBuilder._build_template()
 
     assert "INTENT-TO-SCHEMA MAPPING" in template_text
-    assert "UNIVERSAL SYNONYM EXPANSION" in template_text
+    assert "SYNONYMS & PARTIAL MATCHING" in template_text  # <--- Updated phrase!
     assert "properties(r)" in template_text
     assert "toLower()" in template_text
 
