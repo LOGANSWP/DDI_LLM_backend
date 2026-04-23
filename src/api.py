@@ -37,10 +37,34 @@ async def execute_dynamic_query(request: QueryRequest):
         graph.refresh_schema()
 
         # PASS 1: Get raw JSON
-        # Execute query; chain returns raw JSON because return_direct=True
-        # The {schema} variable is injected automatically by LangChain
         response = cypher_chain.invoke({"query": request.question})
         raw_graph_data = response.get("result", [])
+
+        # --- NEW: Deduplicate mutual relationships (A->B and B->A) ---
+        deduped_data = []
+        seen_pairs = set()
+
+        for item in raw_graph_data:
+            t1 = item.get("Target1")
+            t2 = item.get("Target2")
+            edge_type = item.get("EdgeType")
+
+            if t1 and t2:
+                # Sort the targets alphabetically so (Avocado, Warfarin)
+                # hashes to the exact same tuple as (Warfarin, Avocado)
+                pair_key = tuple(sorted([str(t1), str(t2)]))
+                unique_key = (pair_key, edge_type)
+
+                if unique_key not in seen_pairs:
+                    seen_pairs.add(unique_key)
+                    deduped_data.append(item)
+            else:
+                # If Target1/Target2 are missing, keep the data as-is
+                deduped_data.append(item)
+
+        # Overwrite the raw data with our clean, deduplicated data
+        raw_graph_data = deduped_data
+        # -------------------------------------------------------------
 
         # Failsafe: Query succeeded, but no matching paths exist in the graph
         if not raw_graph_data:
